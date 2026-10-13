@@ -90,6 +90,7 @@ async function resetBr(id){const p=prompt('اكتب الباسورد الجدي�
  try{const email=id+'r'+Date.now().toString(36)+'@'+DOM,uid=await mkUser(email,p),b=fs.batch();
   b.update(fs.doc('branches/'+id),{email,uid});b.update(fs.doc('branchPublic/'+id),{email});await b.commit();alert('تم تغيير الباسورد ✔');}catch(x){alert(x.message);}}
 function draw(){q('main').innerHTML=view==='sum'?sum():view==='br'?brs():tbl(view);}
+document.querySelectorAll('header [data-v]').forEach(b=>b.onclick=()=>{view=b.dataset.v;document.querySelectorAll('header [data-v]').forEach(x=>x.classList.toggle('on',x===b));draw();window.scrollTo(0,0);});
 fa.onAuthStateChanged(u=>{if(u&&J('yw_admin'))chk().catch(()=>{});});
 </script></body></html>
 <!DOCTYPE html>
