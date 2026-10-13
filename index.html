@@ -374,7 +374,8 @@ async function chk(){const u=fa.currentUser;const a=await fs.doc('admins/'+u.uid
  if(!a.exists){q('err').textContent='الحساب ده مش مدير';localStorage.removeItem('yw_admin');await fa.signOut();return;}
  localStorage.setItem('yw_admin','{"ok":1}');start();}
 async function doLogin(){try{await fa.signInWithEmailAndPassword(q('em').value.trim(),q('pw').value);await chk();}
- catch(e){q('err').textContent=(e.code==='auth/network-request-failed')?'تعذّر الدخول (تأكد من النت)':'بيانات غلط';}}
+ catch(e){const c=e.code||'',M={'auth/network-request-failed':'تعذّر الدخول (تأكد من النت)','auth/unauthorized-domain':'الدومين ده مش مضاف في Firebase ← Authentication ← Settings ← Authorized domains','auth/invalid-credential':'الإيميل أو الباسورد غلط','auth/wrong-password':'الباسورد غلط','auth/user-not-found':'الإيميل ده مش موجود في Authentication','auth/invalid-email':'صيغة الإيميل غلط','auth/operation-not-allowed':'فعّل Email/Password من Authentication ← Sign-in method','auth/too-many-requests':'محاولات كتير، استنى شوية وجرّب','permission-denied':'مشكلة صلاحيات: تأكد إن Rules اتنشرت (Publish) وإن مستند admins موجود'};
+  q('err').textContent=(M[c]||'خطأ: '+(c||e.message))+(M[c]?'':'');}}
 function logout(){localStorage.removeItem('yw_admin');fa.signOut().catch(()=>{}).finally(()=>location.reload());}
 function upd(){clearTimeout(tm);tm=setTimeout(()=>{q('upd').textContent='آخر تحديث '+new Date().toLocaleTimeString('ar-EG');draw();},150);}
 function load(){draw();}
