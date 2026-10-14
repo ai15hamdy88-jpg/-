@@ -345,7 +345,7 @@ window.adminLocks=new Set(J('yw_locks_'+BR,[]));
 const OLD=['yawmiyat_days','yawmiyat_posted_v2','yawmiyat_journal_v1','yawmiyat_lockoff','yawmiyat_pw'];
 
 function openAdmin(){location.href='admin.html';}
-document.addEventListener('DOMContentLoaded',()=>{if(BR)mkBar();else if(J('yw_admin',null))openAdmin();else showLogin();});
+document.addEventListener('DOMContentLoaded',()=>{if(BR)mkBar();else showLogin();});
 
 function mkBar(){const b=document.createElement('div');b.id='ywbar';
  b.innerHTML='🏪 '+cb.name+' &nbsp;|&nbsp; <span id="ywstat">...</span> &nbsp;<button onclick="ywLogout()">خروج</button>';
