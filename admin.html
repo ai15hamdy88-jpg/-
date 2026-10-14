@@ -16,6 +16,7 @@ th{background:#eef2f7}tfoot td{font-weight:bold;background:#eef2f7}
 .bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px}
 .k b{display:block;font-size:20px;margin-top:4px}.ok{color:var(--green)}.no{color:var(--red)}
+td.tx{white-space:normal;text-align:right;min-width:190px;font-size:13px;line-height:1.7}
 #login{max-width:340px;margin:80px auto;display:grid;gap:10px}
 @media print{header,.bar{display:none}}
 </style></head><body>
@@ -57,17 +58,22 @@ function start(){if(window._st)return;window._st=1;q('login').style.display='non
    E[b.id]=es.docs.map(d=>{const x=d.data();return {branch_id:b.id,kind:x.kind,date:x.date,data:JSON.parse(x.json)}});
    D.en=[].concat(...Object.values(E));upd();});});
   upd();},e=>{q('main').innerHTML='<div class="card no">تعذّر التحميل: '+e.message+'</div>';});}
+const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const bn=id=>(D.br.find(b=>b.id===id)||{name:'؟'}).name;
 const eTot=r=>(r.exp||[]).reduce((a,x)=>a+(+x.a||0),0);
 function rows(kind){return D.en.filter(e=>e.kind===kind&&(!F.b||e.branch_id===F.b)&&(!F.f||e.date>=F.f)&&(!F.t||e.date<=F.t)).sort((a,b)=>b.date.localeCompare(a.date)||bn(a.branch_id).localeCompare(bn(b.branch_id)));}
 function filt(){return '<div class="bar"><select id="fb" onchange="F.b=this.value;draw()"><option value="">كل الفروع</option>'+D.br.map(b=>'<option value="'+b.id+'"'+(F.b===b.id?' selected':'')+'>'+b.name+'</option>').join('')+'</select>من <input type="date" value="'+F.f+'" onchange="F.f=this.value;draw()"> إلى <input type="date" value="'+F.t+'" onchange="F.t=this.value;draw()"><button onclick="F={b:\'\',f:\'\',t:\'\'};draw()">مسح الفلتر</button><button onclick="csv()">⬇ Excel/CSV</button><button onclick="print()">🖨 طباعة</button></div>';}
 function tbl(kind){const R=rows(kind),T={c:0,r:0,t:0,e:0,n:0,v:0};
  const b=R.map(e=>{const r=e.data,x=eTot(r);T.c+=r.cash||0;T.r+=r.rates||0;T.t+=r.tr||0;T.e+=x;T.n+=r.net||0;T.v+=r.vault||0;
-  const nt=(r.notes||[]).map(n=>n.s).join(' | '),ex=(r.exp||[]).map(y=>y.s+': '+fmt(y.a)).join('<br>');
-  return '<tr><td>'+bn(e.branch_id)+'</td><td>'+jd(r.date)+'</td><td>'+fmt(r.cash)+'</td><td>'+fmt(r.rates)+'</td><td>'+fmt(r.tr)+'</td><td>'+fmt(x)+'</td><td>'+fmt(r.prev)+'</td><td>'+fmt(r.net)+'</td><td>'+fmt(r.vault)+'</td><td>'+(r.actual==null?'—':fmt(r.actual))+'</td><td class="'+(r.diff?'no':'')+'">'+(r.diff==null?'—':fmt(r.diff))+'</td><td>'+((ex||nt)?'<details><summary>عرض</summary>'+ex+(nt?'<br><i>'+nt+'</i>':'')+'</details>':'')+'</td></tr>';}).join('');
- return '<div class="card">'+filt()+'<table id="t"><thead><tr><th>الفرع</th><th>التاريخ</th><th>نقدي</th><th>نسب</th><th>تحويلات</th><th>مصروفات</th><th>سابق</th><th>صافي اليوم</th><th>صافي الخزنة</th><th>الفعلي</th><th>الفرق</th><th>تفاصيل</th></tr></thead><tbody>'+(b||'<tr><td colspan="12">لا توجد بيانات</td></tr>')+'</tbody><tfoot><tr><td colspan="2">الإجمالي ('+R.length+')</td><td>'+fmt(T.c)+'</td><td>'+fmt(T.r)+'</td><td>'+fmt(T.t)+'</td><td>'+fmt(T.e)+'</td><td></td><td>'+fmt(T.n)+'</td><td>'+fmt(T.v)+'</td><td colspan="3"></td></tr></tfoot></table></div>';}
-function csv(){const t=[...document.querySelectorAll('#t tr')].map(tr=>[...tr.children].slice(0,11).map(c=>'"'+c.textContent.replace(/"/g,'""')+'"').join(',')).join('\n');
- const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\ufeff'+t],{type:'text/csv'}));a.download=view+'-'+new Date().toISOString().slice(0,10)+'.csv';a.click();}
+  const nt=(r.notes||[]).map(n=>esc(n.s)).join('<br>'),ex=(r.exp||[]).map(y=>esc(y.s||'—')+': '+fmt(y.a)).join('<br>');
+  return '<tr><td>'+bn(e.branch_id)+'</td><td>'+jd(r.date)+'</td><td>'+fmt(r.cash)+'</td><td>'+fmt(r.rates)+'</td><td>'+fmt(r.tr)+'</td><td>'+fmt(x)+'</td><td>'+fmt(r.prev)+'</td><td>'+fmt(r.net)+'</td><td>'+fmt(r.vault)+'</td><td>'+(r.actual==null?'—':fmt(r.actual))+'</td><td class="'+(r.diff?'no':'')+'">'+(r.diff==null?'—':fmt(r.diff))+'</td><td class="tx">'+ex+'</td><td class="tx">'+nt+'</td></tr>';}).join('');
+ return '<div class="card">'+filt()+'<table id="t"><thead><tr><th>الفرع</th><th>التاريخ</th><th>نقدي</th><th>نسب</th><th>تحويلات</th><th>مصروفات</th><th>سابق</th><th>صافي اليوم</th><th>صافي الخزنة</th><th>الفعلي</th><th>الفرق</th><th>البيان</th><th>ملاحظات وموردين</th></tr></thead><tbody>'+(b||'<tr><td colspan="13">لا توجد بيانات</td></tr>')+'</tbody><tfoot><tr><td colspan="2">الإجمالي ('+R.length+')</td><td>'+fmt(T.c)+'</td><td>'+fmt(T.r)+'</td><td>'+fmt(T.t)+'</td><td>'+fmt(T.e)+'</td><td></td><td>'+fmt(T.n)+'</td><td>'+fmt(T.v)+'</td><td colspan="4"></td></tr></tfoot></table></div>';}
+function csv(){const R=rows(view),Q=v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"',T=[0,0,0,0,0,0];
+ const L=[['الفرع','التاريخ','نقدي','نسب','تحويلات','مصروفات','سابق','صافي اليوم','صافي الخزنة','الفعلي','الفرق','البيان','ملاحظات وموردين'].map(Q).join(',')];
+ R.forEach(e=>{const r=e.data,x=eTot(r);T[0]+=r.cash||0;T[1]+=r.rates||0;T[2]+=r.tr||0;T[3]+=x;T[4]+=r.net||0;T[5]+=r.vault||0;
+  L.push([Q(bn(e.branch_id)),Q(jd(r.date)),r.cash||0,r.rates||0,r.tr||0,x,r.prev||0,r.net||0,r.vault||0,r.actual==null?'':r.actual,r.diff==null?'':r.diff,Q((r.exp||[]).map(y=>(y.s||'—')+': '+y.a).join(' | ')),Q((r.notes||[]).map(n=>n.s).join(' | '))].join(','));});
+ L.push([Q('الإجمالي'),'',T[0],T[1],T[2],T[3],'',T[4],T[5],'','','',''].join(','));
+ const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\ufeff'+L.join('\r\n')],{type:'text/csv;charset=utf-8'}));a.download=(view==='journal'?'دفتر-اليومية-':'الترحيلات-')+new Date().toISOString().slice(0,10)+'.csv';a.click();}
 function sum(){const td=new Date(),today=td.getFullYear()+'-'+String(td.getMonth()+1).padStart(2,'0')+'-'+String(td.getDate()).padStart(2,'0');
  let G=0,N=0;const c=D.br.map(b=>{const P=D.en.filter(e=>e.kind==='posted'&&e.branch_id===b.id).sort((x,y)=>y.date.localeCompare(x.date)),l=P[0],done=P.some(e=>e.date===today);
   const v=P.reduce((a,e)=>a+(e.data.vault||0),0),n=P.reduce((a,e)=>a+(e.data.net||0),0);G+=v;N+=n;
