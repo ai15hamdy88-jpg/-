@@ -17,6 +17,18 @@ th{background:#eef2f7}tfoot td{font-weight:bold;background:#eef2f7}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px}
 .k b{display:block;font-size:20px;margin-top:4px}.ok{color:var(--green)}.no{color:var(--red)}
 td.tx{white-space:normal;text-align:right;min-width:190px;font-size:13px;line-height:1.7}
+
+.jday{margin-bottom:30px}.jdate{display:flex;align-items:center;gap:12px;margin:0 0 10px;font-size:17px;font-weight:bold;color:var(--navy)}
+.chip{color:#fff;border-radius:20px;padding:5px 14px;font-size:15px}
+.sheet{background:#fff;border-radius:14px;box-shadow:0 2px 10px rgba(0,0,0,.13);padding:14px;overflow-x:auto}
+.jt{width:100%;border-collapse:collapse}.jt th{color:#fff;padding:9px;border:1px solid #c5cfdb}
+.jt .h1{background:#2f7d4f}.jt .h2{background:#1f4e79}.jt .h3{background:#1a7a8c}.jt .h4{background:#0c3a4b}
+.jt td{border:1px solid #c5cfdb;padding:7px 9px;font-weight:bold;color:#162c49;height:34px;white-space:normal}
+.jt td.i{color:#1e8e5a;text-align:center}.jt td.e{color:#d64545;text-align:center}.jt td.s{text-align:right}
+.jt tbody tr:nth-child(even){background:#f5f8fc}
+.jsum{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-top:14px}
+.tile{border-radius:12px;color:#fff;padding:12px;text-align:center;display:grid;gap:2px}.tile span{font-size:22px}.tile small{font-size:13px;opacity:.95}.tile b{font-size:20px}
+@media print{.jday{break-after:page;page-break-after:always}.sheet{box-shadow:none}}
 #login{max-width:340px;margin:80px auto;display:grid;gap:10px}
 @media print{header,.bar{display:none}}
 </style></head><body>
@@ -62,12 +74,117 @@ const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;',
 const bn=id=>(D.br.find(b=>b.id===id)||{name:'؟'}).name;
 const eTot=r=>(r.exp||[]).reduce((a,x)=>a+(+x.a||0),0);
 function rows(kind){return D.en.filter(e=>e.kind===kind&&(!F.b||e.branch_id===F.b)&&(!F.f||e.date>=F.f)&&(!F.t||e.date<=F.t)).sort((a,b)=>b.date.localeCompare(a.date)||bn(a.branch_id).localeCompare(bn(b.branch_id)));}
-function filt(){return '<div class="bar"><select id="fb" onchange="F.b=this.value;draw()"><option value="">كل الفروع</option>'+D.br.map(b=>'<option value="'+b.id+'"'+(F.b===b.id?' selected':'')+'>'+b.name+'</option>').join('')+'</select>من <input type="date" value="'+F.f+'" onchange="F.f=this.value;draw()"> إلى <input type="date" value="'+F.t+'" onchange="F.t=this.value;draw()"><button onclick="F={b:\'\',f:\'\',t:\'\'};draw()">مسح الفلتر</button><button onclick="csv()">⬇ Excel/CSV</button><button onclick="print()">🖨 طباعة</button></div>';}
-function tbl(kind){const R=rows(kind),T={c:0,r:0,t:0,e:0,n:0,v:0};
+function filt(){return '<div class="bar"><select id="fb" onchange="F.b=this.value;draw()"><option value="">كل الفروع</option>'+D.br.map(b=>'<option value="'+b.id+'"'+(F.b===b.id?' selected':'')+'>'+b.name+'</option>').join('')+'</select>من <input type="date" value="'+F.f+'" onchange="F.f=this.value;draw()"> إلى <input type="date" value="'+F.t+'" onchange="F.t=this.value;draw()"><button onclick="F={b:\'\',f:\'\',t:\'\'};draw()">مسح الفلتر</button><button onclick="'+(view==='journal'?'xlsxJ()':'csv()')+'">⬇ Excel</button><button onclick="print()">🖨 طباعة</button></div>';}
+function tbl(kind){if(kind==='journal')return jview();const R=rows(kind),T={c:0,r:0,t:0,e:0,n:0,v:0};
  const b=R.map(e=>{const r=e.data,x=eTot(r);T.c+=r.cash||0;T.r+=r.rates||0;T.t+=r.tr||0;T.e+=x;T.n+=r.net||0;T.v+=r.vault||0;
   const nt=(r.notes||[]).map(n=>esc(n.s)).join('<br>'),ex=(r.exp||[]).map(y=>esc(y.s||'—')+': '+fmt(y.a)).join('<br>');
   return '<tr><td>'+bn(e.branch_id)+'</td><td>'+jd(r.date)+'</td><td>'+fmt(r.cash)+'</td><td>'+fmt(r.rates)+'</td><td>'+fmt(r.tr)+'</td><td>'+fmt(x)+'</td><td>'+fmt(r.prev)+'</td><td>'+fmt(r.net)+'</td><td>'+fmt(r.vault)+'</td><td>'+(r.actual==null?'—':fmt(r.actual))+'</td><td class="'+(r.diff?'no':'')+'">'+(r.diff==null?'—':fmt(r.diff))+'</td><td class="tx">'+ex+'</td><td class="tx">'+nt+'</td></tr>';}).join('');
  return '<div class="card">'+filt()+'<table id="t"><thead><tr><th>الفرع</th><th>التاريخ</th><th>نقدي</th><th>نسب</th><th>تحويلات</th><th>مصروفات</th><th>سابق</th><th>صافي اليوم</th><th>صافي الخزنة</th><th>الفعلي</th><th>الفرق</th><th>البيان</th><th>ملاحظات وموردين</th></tr></thead><tbody>'+(b||'<tr><td colspan="13">لا توجد بيانات</td></tr>')+'</tbody><tfoot><tr><td colspan="2">الإجمالي ('+R.length+')</td><td>'+fmt(T.c)+'</td><td>'+fmt(T.r)+'</td><td>'+fmt(T.t)+'</td><td>'+fmt(T.e)+'</td><td></td><td>'+fmt(T.n)+'</td><td>'+fmt(T.v)+'</td><td colspan="4"></td></tr></tfoot></table></div>';}
+const crcT=(()=>{const t=[];for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;t[n]=c>>>0}return t})();
+function crc32(b){let c=-1;for(let i=0;i<b.length;i++)c=crcT[(c^b[i])&255]^(c>>>8);return(c^-1)>>>0}
+function zipBlob(files){
+  const enc=new TextEncoder(),parts=[],cen=[];let off=0;
+  files.forEach(f=>{
+    const n=enc.encode(f.name),d=enc.encode(f.data),crc=crc32(d);
+    const h=new Uint8Array(30+n.length),v=new DataView(h.buffer);
+    v.setUint32(0,0x04034b50,true);v.setUint16(4,20,true);v.setUint16(6,0x0800,true);v.setUint16(12,0x21,true);
+    v.setUint32(14,crc,true);v.setUint32(18,d.length,true);v.setUint32(22,d.length,true);v.setUint16(26,n.length,true);h.set(n,30);
+    parts.push(h,d);
+    const c=new Uint8Array(46+n.length),w=new DataView(c.buffer);
+    w.setUint32(0,0x02014b50,true);w.setUint16(4,20,true);w.setUint16(6,20,true);w.setUint16(8,0x0800,true);w.setUint16(14,0x21,true);
+    w.setUint32(16,crc,true);w.setUint32(20,d.length,true);w.setUint32(24,d.length,true);w.setUint16(28,n.length,true);w.setUint32(42,off,true);c.set(n,46);
+    cen.push(c);off+=h.length+d.length;
+  });
+  const cs=cen.reduce((x,c)=>x+c.length,0),e=new Uint8Array(22),ev=new DataView(e.buffer);
+  ev.setUint32(0,0x06054b50,true);ev.setUint16(8,files.length,true);ev.setUint16(10,files.length,true);ev.setUint32(12,cs,true);ev.setUint32(16,off,true);
+  return new Blob([...parts,...cen,e],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+}
+
+const xe=v=>String(v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const xcol=c=>String.fromCharCode(64+c);
+function XL(widths){
+  const st=[{}],sm={},o={cells:{},merges:[],hts:{},breaks:[]};
+  const sty=z=>{const k=JSON.stringify(z);if(!(k in sm)){sm[k]=st.length;st.push(z);}return sm[k];};
+  o.put=(r,c,v,z)=>{o.cells[r+','+c]={r,c,v,s:sty(z||{})};};
+  o.span=(r,c1,c2,v,z)=>{for(let c=c1;c<=c2;c++)o.put(r,c,c===c1?v:'',z);if(c2>c1)o.merges.push(xcol(c1)+r+':'+xcol(c2)+r);};
+  o.ht=(r,h)=>{o.hts[r]=h;};
+  o.blob=sheetName=>{
+    const H='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>',NS='xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"';
+    const fonts=['<font><sz val="11"/><name val="Calibri"/></font>'],fills=['<fill><patternFill patternType="none"/></fill>','<fill><patternFill patternType="gray125"/></fill>'];
+    const xfs=['<xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>'];
+    st.forEach((z,i)=>{if(!i)return;
+      fonts.push(`<font>${z.b?'<b/>':''}<sz val="${z.sz||11}"/>${z.color?`<color rgb="FF${z.color}"/>`:''}<name val="Calibri"/></font>`);
+      let f=0;if(z.fill){fills.push(`<fill><patternFill patternType="solid"><fgColor rgb="FF${z.fill}"/><bgColor indexed="64"/></patternFill></fill>`);f=fills.length-1;}
+      xfs.push(`<xf numFmtId="${z.nf||0}" fontId="${fonts.length-1}" fillId="${f}" borderId="${z.bd?1:0}" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyNumberFormat="1" applyAlignment="1"><alignment horizontal="${z.h||'general'}" vertical="center" readingOrder="2" wrapText="1"/></xf>`);
+    });
+    const bs=c=>`<${c} style="thin"><color rgb="FFC5CFDB"/></${c}>`;
+    const styles=H+`<styleSheet ${NS}><fonts count="${fonts.length}">${fonts.join('')}</fonts><fills count="${fills.length}">${fills.join('')}</fills><borders count="2"><border><left/><right/><top/><bottom/><diagonal/></border><border>${bs('left')}${bs('right')}${bs('top')}${bs('bottom')}<diagonal/></border></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="${xfs.length}">${xfs.join('')}</cellXfs></styleSheet>`;
+    const rows={};Object.values(o.cells).forEach(c=>{(rows[c.r]=rows[c.r]||[]).push(c)});
+    const sd=Object.keys(rows).map(Number).sort((a,b)=>a-b).map(r=>`<row r="${r}"${o.hts[r]?` ht="${o.hts[r]}" customHeight="1"`:''}>`+rows[r].sort((a,b)=>a.c-b.c).map(c=>{
+      const ref=xcol(c.c)+r;
+      if(c.v===''||c.v==null)return `<c r="${ref}" s="${c.s}"/>`;
+      return typeof c.v==='number'?`<c r="${ref}" s="${c.s}"><v>${c.v}</v></c>`:`<c r="${ref}" s="${c.s}" t="inlineStr"><is><t xml:space="preserve">${xe(c.v)}</t></is></c>`;
+    }).join('')+'</row>').join('');
+    const cols=widths.map((w,i)=>`<col min="${i+1}" max="${i+1}" width="${w}" customWidth="1"/>`).join('');
+    const sheet=H+`<worksheet ${NS}><sheetPr><pageSetUpPr fitToPage="1"/></sheetPr><sheetViews><sheetView rightToLeft="1" showGridLines="0" workbookViewId="0"/></sheetViews><cols>${cols}</cols><sheetData>${sd}</sheetData>`
+      +(o.merges.length?`<mergeCells count="${o.merges.length}">${o.merges.map(m=>`<mergeCell ref="${m}"/>`).join('')}</mergeCells>`:'')
+      +`<pageMargins left="0.5" right="0.5" top="0.6" bottom="0.6" header="0.3" footer="0.3"/><pageSetup paperSize="9" orientation="portrait" fitToWidth="1" fitToHeight="0"/>`
+      +(o.breaks.length?`<rowBreaks count="${o.breaks.length}" manualBreakCount="${o.breaks.length}">${o.breaks.map(b=>`<brk id="${b}" max="16383" man="1"/>`).join('')}</rowBreaks>`:'')+'</worksheet>';
+    return zipBlob([
+      {name:'[Content_Types].xml',data:H+'<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/></Types>'},
+      {name:'_rels/.rels',data:H+'<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>'},
+      {name:'xl/workbook.xml',data:H+`<workbook ${NS} xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="${sheetName}" sheetId="1" r:id="rId1"/></sheets></workbook>`},
+      {name:'xl/_rels/workbook.xml.rels',data:H+'<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>'},
+      {name:'xl/styles.xml',data:styles},
+      {name:'xl/worksheets/sheet1.xml',data:sheet}
+    ]);
+  };
+  return o;
+}
+
+
+const jDate=d=>{const [y,m,x]=d.split('-');return (+x)+' / '+(+m)+' / '+y};
+const jDay=d=>{try{return new Date(d+'T00:00:00').toLocaleDateString('ar-EG',{weekday:'long'})}catch(e){return ''}};
+const PAL=['#1e8e5a','#2e86de','#c98a0b','#9b59b6','#e0383e','#1a7a8c','#d35400','#34495e'];
+const bc=id=>PAL[Math.max(0,D.br.findIndex(b=>b.id===id))%PAL.length];
+const nm=v=>+v||0;
+function jview(){const R=rows('journal');
+ const cards=R.map(e=>{const p=e.data,ex=p.exp||[],exT=ex.reduce((a,x)=>a+nm(x.a),0),inc=nm(p.cash)+nm(p.rates)+nm(p.tr),nt=p.notes||[];
+  const L=[['• اجمالى ايرادات نقدى',p.cash,null],['• اجمالى ايرادات نسب',p.rates,null],['• اجمالى ايرادات تحويلات',p.tr,null],...ex.map(x=>[x.s||'—',null,x.a])];
+  const n=Math.max(6,L.length,nt.length);let body='';
+  for(let k=0;k<n;k++){const w=L[k]||[];body+='<tr><td class="i">'+(w[1]!=null?fmt(w[1]):'')+'</td><td class="e">'+(w[2]!=null?fmt(w[2]):'')+'</td><td class="s">'+esc(w[0]||'')+'</td><td class="s">'+(nt[k]?esc(nt[k].s):'')+'</td></tr>';}
+  const S=[['#5bb0c9','👛','رصيد سابق',nm(p.prev)],['#2fa35f','📈','إجمالي ايرادات',inc],['#e0383e','📉','إجمالي مصروفات',exT],['#9b59b6','🪙','صافي النقديه',nm(p.prev)+inc-exT],['#f0a021','🔐','رصيد فعلى',nm(p.prev)+nm(p.cash)+nm(p.rates)-exT]];
+  return '<div class="jday"><div class="jdate"><span class="chip" style="background:'+bc(e.branch_id)+'">🏪 '+esc(bn(e.branch_id))+'</span><span>📅 '+jDay(p.date)+' — '+jDate(p.date)+'</span></div>'+
+  '<div class="sheet"><table class="jt"><thead><tr><th class="h1">ايراد</th><th class="h2">مصروف</th><th class="h3">البيـان</th><th class="h4">ملاحظات وموردين</th></tr></thead><tbody>'+body+'</tbody></table>'+
+  '<div class="jsum">'+S.map(q=>'<div class="tile" style="background:'+q[0]+'"><span>'+q[1]+'</span><small>'+q[2]+'</small><b>'+fmt(q[3])+'</b></div>').join('')+'</div></div></div>';}).join('');
+ return '<div class="card">'+filt()+'<small>'+R.length+' ورقة</small></div>'+(cards||'<div class="card">لا توجد بيانات</div>');}
+/* دفتر اليومية → Excel: نفس تنسيق السيستم، كل يوم/فرع ورقة وبينهم فاصل صفحة */
+function xlsxJ(){
+  const x=XL([15,17,36,32]);
+  const T={b:1,sz:14,color:'1E3A5F',fill:'EAF0F7',h:'center',bd:1}, BX={b:1,color:'162C49',fill:'F7FAFD',bd:1};
+  const HD=f=>({b:1,color:'FFFFFF',fill:f,h:'center',bd:1});
+  const list=rows('journal').slice().sort((a,b)=>a.date.localeCompare(b.date)||bn(a.branch_id).localeCompare(bn(b.branch_id),'ar'));
+  if(!list.length){alert('مفيش بيانات للتصدير');return;}
+  let r=1;
+  list.forEach((e,pi)=>{const p=e.data,ex=p.exp||[],exTot=ex.reduce((a,z)=>a+nm(z.a),0),inc=nm(p.cash)+nm(p.rates)+nm(p.tr);
+    x.span(r,1,4,bn(e.branch_id)+' — '+jDay(p.date)+' — '+jDate(p.date),T);x.ht(r,28);
+    x.span(r+1,1,2,'الفرع : '+bn(e.branch_id),BX);x.span(r+1,3,4,'التاريخ : '+jDate(p.date),BX);x.ht(r+1,26);
+    x.put(r+2,1,'ايراد',HD('2F7D4F'));x.put(r+2,2,'مصروف',HD('1F4E79'));x.put(r+2,3,'البيـان',HD('1A7A8C'));x.put(r+2,4,'ملاحظات وموردين',HD('0C3A4B'));x.ht(r+2,26);
+    const rw=[['• اجمالى ايرادات نقدى',nm(p.cash),null],['• اجمالى ايرادات نسب',nm(p.rates),null],['• اجمالى ايرادات تحويلات',nm(p.tr),null],...ex.map(z=>[z.s||'—',null,nm(z.a)])];
+    const nt=p.notes||[],n=Math.max(12,rw.length,nt.length);
+    for(let k=0;k<n;k++){const w=rw[k]||[],rr=r+3+k;
+      x.put(rr,1,w[1]!=null?w[1]:'',{b:1,color:'1E8E5A',h:'center',bd:1,nf:4});
+      x.put(rr,2,w[2]!=null?w[2]:'',{b:1,color:'D64545',h:'center',bd:1,nf:4});
+      x.put(rr,3,w[0]||'',{b:1,color:'162C49',bd:1});x.put(rr,4,nt[k]?nt[k].s:'',{b:1,color:'162C49',bd:1});x.ht(rr,22);}
+    const s0=r+3+n;
+    x.span(s0,1,4,'ملخص اليوم',{b:1,sz:13,color:'FFFFFF',fill:'0B2F5B',h:'center',bd:1});x.ht(s0,26);
+    [['5BB0C9','👛','رصيد سابق',nm(p.prev)],['2FA35F','📈','إجمالي ايرادات',inc],['E0383E','📉','إجمالي مصروفات',exTot],['9B59B6','🪙','صافي النقديه',nm(p.prev)+inc-exTot],['F0A021','🔐','رصيد فعلى',nm(p.prev)+nm(p.cash)+nm(p.rates)-exTot]].forEach((q,k)=>{
+      const rr=s0+1+k;x.put(rr,1,q[1],{sz:14,fill:q[0],h:'center',bd:1});x.put(rr,2,q[2],{b:1,bd:1});x.span(rr,3,4,q[3],{b:1,sz:12,h:'center',bd:1,nf:4});x.ht(rr,26);});
+    const last=s0+5;if(pi<list.length-1)x.breaks.push(last+1);
+    r=last+2;});
+  const blob=x.blob('دفتر اليومية'),a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);a.download='دفتر-اليومية-'+(F.f||list[0].date)+'-'+(F.t||list[list.length-1].date)+'.xlsx';document.body.appendChild(a);a.click();a.remove();}
+
 function csv(){const R=rows(view),Q=v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"',T=[0,0,0,0,0,0];
  const L=[['الفرع','التاريخ','نقدي','نسب','تحويلات','مصروفات','سابق','صافي اليوم','صافي الخزنة','الفعلي','الفرق','البيان','ملاحظات وموردين'].map(Q).join(',')];
  R.forEach(e=>{const r=e.data,x=eTot(r);T[0]+=r.cash||0;T[1]+=r.rates||0;T[2]+=r.tr||0;T[3]+=x;T[4]+=r.net||0;T[5]+=r.vault||0;
