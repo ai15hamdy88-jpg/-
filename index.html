@@ -903,11 +903,11 @@ function delJ(i){
 const PW_KEY='yawmiyat_pw_'+BR; let unlocked=false;
 const hp=t=>{let x=5381;for(const c of 'ydp'+t)x=((x<<5)+x+c.charCodeAt(0))>>>0;return String(x)};
 function pwHash(){let v=null;try{v=localStorage.getItem(PW_KEY)}catch(e){}return v||hp('2711')}
-function isOpen(p){return !!lockOff[p]||unlocked}
+function isOpen(p){return p==='p3'||!!lockOff[p]||unlocked}   // دفتر اليومية مفتوح دايماً بدون باسورد
 function applyLock(){[['lock','p2content','p2'],['lock3','p3content','p3']].forEach(([l,c,p])=>{const o=isOpen(p);document.getElementById(l).style.display=o?'none':'block';document.getElementById(c).style.display=o?'block':'none';});}
-function lockUi(){['p2','p3'].forEach(p=>{const off=!!lockOff[p];
+function lockUi(){['lt-p3','lk-p3'].forEach(i=>{const e=document.getElementById(i);if(e)e.style.display='none';});['p2','p3'].forEach(p=>{const off=!!lockOff[p];
   document.getElementById('lt-'+p).textContent=off?'🔒 تفعيل الباسورد على الصفحة':'🔓 فتح الصفحة بدون باسورد';
-  document.getElementById('lk-'+p).style.display=off?'none':'';});}
+  if(p!=='p3')document.getElementById('lk-'+p).style.display=off?'none':'';});}
 function toggleLock(p){
   if(lockOff[p]){delete lockOff[p];unlocked=false;save();lockUi();applyLock();toast('تم تفعيل الباسورد على الصفحة ✔');return;}
   if(!confirm('الصفحة هتفتح لأي حد من غير باسورد. متأكد؟'))return;
